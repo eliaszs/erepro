@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: branches
+  labels:
+    app: branches
+spec:
+  ports:
+  - port: 9090
+    name: http
+  selector:
+    app: branches
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: branches-v1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: branches
+        version: v1
+    spec:
+      containers:
+      - name: branches
+        image: istio/examples-bookinfo-branches-v1:1.5.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9090
