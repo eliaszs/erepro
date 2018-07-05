@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+message EchoRequest {
+  string value = 1;
+}
+
+message GetEchoRequest {
+ int32 id = 1;
+}
+
+message EchoResponse {
+  int32 id = 1;
+  string value = 2;
+}
+
+message EchoHistoryResponse {
+  repeated string history = 1;
+}
+
+service EchoService {
+  rpc Echo(EchoRequest) returns (EchoResponse) {
+    option (google.api.http) = {
+      post: "/v1/echo"
+      body: "*"
+    };
+  }
+  rpc GetEchoHistory(google.protobuf.Empty) returns (EchoHistoryResponse) {
+    option (google.api.http) = {
+      get: "/v1/echo"
+    };
+  }
+  rpc GetEcho(GetEchoRequest) returns (EchoResponse) {
+    option (google.api.http) = {
+      get: "/v1/echo/{id}"
+    };
+  }
+}
