@@ -9,6 +9,10 @@ build:
 run:
 	docker run --rm -it ${NAME}:${TAG}
 
-.PHONY: all
-test:
-	pytest .
+.PHONY: pytest
+pytest:
+	pytest tests
+
+.PHONY: behave
+behave:
+	behave features
