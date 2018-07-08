@@ -16,6 +16,11 @@ Repository contains the microservices source code and the k8s infrastructure def
 make build
 ```
 
+docker-compose
+```
+docker-compose -f ./docker-compose.yaml up --no-recreate
+```
+
 # Run
 ```bash
 make run
