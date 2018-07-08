@@ -1,6 +1,6 @@
-NAME := erepro-branches
+NAME := erepro-listings
 
 .PHONY: build
 build:
-	time docker build -t ${NAME}:latest .
+	time docker build -f ./Dockerfile -t ${NAME}:latest .
 
