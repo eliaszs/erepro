@@ -10,7 +10,5 @@ import erepro.api.listings.v1.listings_pb2_grpc as listings_grpc
 def test_list_listings():
     with grpc.insecure_channel(os.getenv('HOSTPORT', 'localhost:9090')) as ch:
         stub = listings_grpc.ListingsStub(ch)
-
         res = stub.ListListings(listings.ListListingsRequest(page_size=10))
-
-        assert res is not None
+        print(res)
