@@ -1,0 +1,53 @@
+version: '2'
+services:
+  elasticsearch:
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.1
+    container_name: elasticsearch1
+    environment:
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - erepro
+
+  listings:
+    hostname: listings
+    build: services/listings
+    depends_on:
+      - elasticsearch
+    networks:
+      - erepro
+
+  listings-gw:
+    hostname: listings-gw
+    build: services/listings-gw
+    depends_on:
+      - listings
+    networks:
+      - erepro
+
+  branches:
+    hostname: branches
+    build: services/branches
+    depends_on:
+      - elasticsearch
+    networks:
+      - erepro
+
+  branches-gw:
+    hostname: branches-gw
+    build: services/branches
+    depends_on:
+      - branches
+    networks:
+      - erepro
+
+networks:
+  erepro:
