@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"context"
@@ -6,7 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	"github.com/codegangsta/negroni"
 	"github.com/golang/glog"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
@@ -19,30 +23,48 @@ var (
 	hostport = flag.String("hostport", "localhost:8080", "hostport for the proxy")
 )
 
-func run() error {
-	log.Println("Starting server " + os.Args[0])
-
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	log.Println("Registering gRPC service handler")
-	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := gw.RegisterListingsHandlerFromEndpoint(ctx, mux, *endpoint, opts)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Listening on %s\n", *hostport)
-	return http.ListenAndServe(*hostport, mux)
-}
-
-func main() {
+// Run is the main function of this gateway
+func Run() {
 	flag.Parse()
 	defer glog.Flush()
 
-	if err := run(); err != nil {
-		glog.Fatal(err)
+	log.Println("Starting server " + os.Args[0])
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	apiAddr := *endpoint
+	if value := os.Getenv("SERVICE"); len(value) != 0 {
+		apiAddr = value
 	}
+
+	log.Println("Registering gRPC service handler")
+	mux := runtime.NewServeMux()
+	n := negroni.Classic()
+	n.UseHandler(mux)
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err := gw.RegisterListingsHandlerFromEndpoint(ctx, mux, apiAddr, opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	addr := *hostport
+	if value := os.Getenv("HOSTPORT"); len(value) != 0 {
+		addr = value
+	}
+
+	server := http.Server{Addr: addr, Handler: n}
+	go func() {
+		log.Printf("Listening on %s", addr)
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatalf("fatal error: %s\n", err)
+		}
+	}()
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	<-sigs
+
+	log.Println("Shutting down the server")
 }
