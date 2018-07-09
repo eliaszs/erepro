@@ -18,7 +18,8 @@ make build
 
 docker-compose
 ```
-docker-compose -f ./docker-compose.yaml up --no-recreate
+make up
+make kill
 ```
 
 # Run
