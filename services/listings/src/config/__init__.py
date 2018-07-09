@@ -9,7 +9,7 @@ class DBConfig(RequiredConfig):
     required_config = Namespace()
     required_config.add_option(
         name='url',
-        default='127.0.0.1:9200',
+        default='elasticsearch:9200',
         doc='Specify the database url address'
     )
 
